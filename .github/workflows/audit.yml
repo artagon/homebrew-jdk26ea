@@ -7,13 +7,12 @@ on:
 
 jobs:
   audit:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
       - name: Audit cask
         run: |
-          brew tap homebrew/cask
           brew audit --cask --strict Casks/jdk26valhalla.rb || true
 
       - name: Test cask installation (dry run)
