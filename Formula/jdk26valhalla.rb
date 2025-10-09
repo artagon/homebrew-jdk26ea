@@ -1,19 +1,19 @@
 class Jdk26valhalla < Formula
   desc "Early-Access JDK 26 with Project Valhalla (value classes)"
   homepage "https://jdk.java.net/valhalla/"
-  version "__VERSION__"
+  version "23-valhalla+1-90"
   on_macos do
     if Hardware::CPU.arm?
-      url "__URL_MAC_ARM__"
-      sha256 "__SHA_MAC_ARM__"
+      url "https://download.java.net/java/early_access/valhalla/1/openjdk-23-valhalla+1-90_macos-aarch64_bin.tar.gz"
+      sha256 "e7c490e33056a6dabb06e69ec63d42dc7eab7134e4e5cea0df41dbf1cfb63e2e"
     else
-      url "__URL_MAC_INTEL__"
-      sha256 "__SHA_MAC_INTEL__"
+      url "https://download.java.net/java/early_access/valhalla/1/openjdk-23-valhalla+1-90_macos-x64_bin.tar.gz"
+      sha256 "9cc2e89745f95f3d9f7d16e8a7285e9de1cee03f85e3d8e7a5ae86d44f91e3ef"
     end
   end
   on_linux do
-    url "__URL_LINUX_X64__"
-    sha256 "__SHA_LINUX_X64__"
+    url "https://download.java.net/java/early_access/valhalla/1/openjdk-23-valhalla+1-90_linux-x64_bin.tar.gz"
+    sha256 "5235afaf5ecc86f2237458cf40f8ed965939372f606edbd0fc46e1ee2e69f5f5"
   end
   def install
     libexec.install Dir["*"]
