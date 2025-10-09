@@ -11,10 +11,7 @@ permissions:
 
 jobs:
   update:
-    strategy:
-      matrix:
-        runner: [ubuntu-latest, ubuntu-24.04-arm64]
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
