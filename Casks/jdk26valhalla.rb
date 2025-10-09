@@ -16,9 +16,18 @@ cask "jdk26valhalla" do
   postflight do
     jdk_target = "/Library/Java/JavaVirtualMachines/jdk-26-ea.jdk"
     jdk_src = Dir["#{staged_path}/jdk-*"].first
+
+    # Detect rsync path based on OS
+    rsync_path = if MacOS.version
+                   "/usr/bin/rsync"
+                 else
+                   # Linux typically has rsync in /usr/bin
+                   system("command -v rsync > /dev/null 2>&1") ? `which rsync`.strip : "/usr/bin/rsync"
+                 end
+
     if jdk_src
       system_command "/bin/mkdir", args: ["-p", jdk_target], sudo: true
-      system_command "/usr/bin/rsync", args: ["-a", jdk_src + "/", jdk_target + "/"], sudo: true
+      system_command rsync_path, args: ["-a", jdk_src + "/", jdk_target + "/"], sudo: true
     end
   end
   uninstall_postflight do
