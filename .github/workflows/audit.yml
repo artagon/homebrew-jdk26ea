@@ -13,8 +13,5 @@ jobs:
 
       - name: Audit cask
         run: |
-          brew audit --cask --strict Casks/jdk26valhalla.rb || true
-
-      - name: Test cask installation (dry run)
-        run: |
           brew style Casks/jdk26valhalla.rb || true
+          ruby -c Casks/jdk26valhalla.rb

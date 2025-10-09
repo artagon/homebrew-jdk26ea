@@ -13,5 +13,5 @@ jobs:
 
       - name: Validate cask syntax
         run: |
-          brew style --fix Casks/jdk26valhalla.rb || true
-          brew audit --cask Casks/jdk26valhalla.rb || true
+          brew style Casks/jdk26valhalla.rb || true
+          ruby -c Casks/jdk26valhalla.rb
