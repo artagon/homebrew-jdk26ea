@@ -1,16 +1,16 @@
 cask "jdk26valhalla" do
-  version "__VERSION__"
+  version "23-"
   name "JDK 26 Valhalla EA"
   desc "Early-Access JDK 26 with Project Valhalla (value classes)"
   homepage "https://jdk.java.net/valhalla/"
   on_macos do
     on_arm do
-      url "__URL_MAC_ARM__"
-      sha256 "__SHA_MAC_ARM__"
+      url "https://download.java.net/java/early_access/valhalla/1/openjdk-23-valhalla+1-90_linux-aarch64_bin.tar.gz"
+      sha256 "5c5de0d2e9e6353c7690c23f56571ca368816c76daf860350d904645d3ac2da2"
     end
     on_intel do
-      url "__URL_MAC_INTEL__"
-      sha256 "__SHA_MAC_INTEL__"
+      url "https://download.java.net/java/early_access/valhalla/1/openjdk-23-valhalla+1-90_linux-x64_bin.tar.gz"
+      sha256 "5235afaf5ecc86f2237458cf40f8ed965939372f606edbd0fc46e1ee2e69f5f5"
     end
   end
   postflight do
