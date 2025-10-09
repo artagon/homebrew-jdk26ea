@@ -18,7 +18,7 @@ cask "jdk26valhalla" do
     jdk_src = Dir["#{staged_path}/jdk-*"].first
     if jdk_src
       system_command "/bin/mkdir", args: ["-p", jdk_target], sudo: true
-      system_command "/bin/rsync", args: ["-a", jdk_src + "/", jdk_target + "/"], sudo: true
+      system_command "/usr/bin/rsync", args: ["-a", jdk_src + "/", jdk_target + "/"], sudo: true
     end
   end
   uninstall_postflight do
