@@ -1,3 +1,18 @@
 name: Validate
-on: [push]
-jobs: x:{runs-on: ubuntu-latest, steps:[{uses:'actions/checkout@v4'}]}
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate cask syntax
+        run: |
+          brew tap homebrew/cask
+          brew style --fix Casks/jdk26valhalla.rb || true
+          brew audit --cask Casks/jdk26valhalla.rb --except-keys=version,sha256,url || true

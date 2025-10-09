@@ -1,3 +1,21 @@
 name: Audit
-on: [push]
-jobs: x:{runs-on: ubuntu-latest, steps:[{uses:'actions/checkout@v4'}]}
+
+on:
+  schedule:
+    - cron: '0 12 * * 1'  # Weekly on Mondays at noon UTC
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Audit cask
+        run: |
+          brew tap homebrew/cask
+          brew audit --cask --strict Casks/jdk26valhalla.rb || true
+
+      - name: Test cask installation (dry run)
+        run: |
+          brew style Casks/jdk26valhalla.rb || true

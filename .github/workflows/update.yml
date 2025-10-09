@@ -1,3 +1,58 @@
-name: Update
-on: [workflow_dispatch]
-jobs: x:{runs-on: ubuntu-latest, steps:[{uses:'actions/checkout@v4'}]}
+name: Update JDK 26 Valhalla
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'  # Daily at midnight UTC
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch latest JDK 26 Valhalla EA
+        id: fetch
+        run: |
+          # Fetch the JDK 26 Valhalla page
+          curl -sL https://jdk.java.net/valhalla/ > page.html
+
+          # Extract version and download URLs
+          VERSION=$(grep -oP 'Build \K[0-9-]+' page.html | head -1)
+          URL_MAC_ARM=$(grep -oP 'href="\K[^"]*aarch64.*\.tar\.gz(?=")' page.html | head -1)
+          URL_MAC_INTEL=$(grep -oP 'href="\K[^"]*x64.*\.tar\.gz(?=")' page.html | head -1)
+
+          # Download and calculate checksums
+          SHA_MAC_ARM=$(curl -sL "$URL_MAC_ARM" | shasum -a 256 | cut -d' ' -f1)
+          SHA_MAC_INTEL=$(curl -sL "$URL_MAC_INTEL" | shasum -a 256 | cut -d' ' -f1)
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "url_mac_arm=$URL_MAC_ARM" >> $GITHUB_OUTPUT
+          echo "url_mac_intel=$URL_MAC_INTEL" >> $GITHUB_OUTPUT
+          echo "sha_mac_arm=$SHA_MAC_ARM" >> $GITHUB_OUTPUT
+          echo "sha_mac_intel=$SHA_MAC_INTEL" >> $GITHUB_OUTPUT
+
+      - name: Update cask file
+        run: |
+          sed -i "s|__VERSION__|${{ steps.fetch.outputs.version }}|g" Casks/jdk26valhalla.rb
+          sed -i "s|__URL_MAC_ARM__|${{ steps.fetch.outputs.url_mac_arm }}|g" Casks/jdk26valhalla.rb
+          sed -i "s|__URL_MAC_INTEL__|${{ steps.fetch.outputs.url_mac_intel }}|g" Casks/jdk26valhalla.rb
+          sed -i "s|__SHA_MAC_ARM__|${{ steps.fetch.outputs.sha_mac_arm }}|g" Casks/jdk26valhalla.rb
+          sed -i "s|__SHA_MAC_INTEL__|${{ steps.fetch.outputs.sha_mac_intel }}|g" Casks/jdk26valhalla.rb
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: "Update JDK 26 Valhalla to ${{ steps.fetch.outputs.version }}"
+          title: "Update JDK 26 Valhalla to ${{ steps.fetch.outputs.version }}"
+          body: |
+            Auto-update JDK 26 Valhalla EA to version ${{ steps.fetch.outputs.version }}
+
+            - macOS ARM64: ${{ steps.fetch.outputs.url_mac_arm }}
+            - macOS x64: ${{ steps.fetch.outputs.url_mac_intel }}
+          branch: update-jdk26-${{ steps.fetch.outputs.version }}
+          delete-branch: true
