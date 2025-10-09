@@ -35,17 +35,17 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.version.outputs.version }}
-          name: JDK 26 Valhalla EA ${{ steps.version.outputs.version }}
+          name: JDK 26 EA ${{ steps.version.outputs.version }}
           body: |
-            JDK 26 Valhalla Early Access Build ${{ steps.version.outputs.version }}
+            JDK 26 Early Access Build ${{ steps.version.outputs.version }}
 
             ## Installation
 
             ```bash
-            brew tap gtrump001c/jdk26valhalla
+            brew tap trumpyla/jdk26-ea
             brew install --cask jdk26valhalla
             ```
 
-            For more information, visit https://jdk.java.net/valhalla/
+            For more information, visit https://jdk.java.net/26/
           draft: false
           prerelease: true
