@@ -4,7 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - 'Casks/jdk26valhalla.rb'
+      - 'Casks/jdk26ea.rb'
+      - 'Formula/jdk26ea.rb'
 
 permissions:
   contents: write
@@ -14,12 +15,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for changelog
 
       - name: Extract version from cask
         id: version
         run: |
-          VERSION=$(grep -oP 'version "\K[^"]+' Casks/jdk26valhalla.rb)
+          VERSION=$(grep -oP 'version "\K[^"]+' Casks/jdk26ea.rb)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          # Extract build number for changelog
+          BUILD=$(echo "$VERSION" | grep -oP '\+\K\d+')
+          echo "build=$BUILD" >> $GITHUB_OUTPUT
 
       - name: Check if tag exists
         id: check_tag
@@ -30,22 +37,126 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Get previous version
+        if: steps.check_tag.outputs.exists == 'false'
+        id: prev_version
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          echo "tag=$PREV_TAG" >> $GITHUB_OUTPUT
+
+          if [ -n "$PREV_TAG" ]; then
+            PREV_VERSION=$(echo "$PREV_TAG" | sed 's/^v//')
+            echo "version=$PREV_VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "version=none" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate changelog
+        if: steps.check_tag.outputs.exists == 'false'
+        id: changelog
+        run: |
+          PREV_TAG="${{ steps.prev_version.outputs.tag }}"
+
+          if [ -n "$PREV_TAG" ]; then
+            CHANGELOG=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+          else
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          fi
+
+          # Escape for GitHub Actions
+          CHANGELOG="${CHANGELOG//'%'/'%25'}"
+          CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
+          CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
+
+          echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
+
+      - name: Update README with current version
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          BUILD="${{ steps.version.outputs.build }}"
+
+          # Get release date from JDK page
+          RELEASE_DATE=$(curl -fsSL "https://jdk.java.net/26/" | grep -oP 'Build '"$BUILD"' \(\K[0-9]{4}/[0-9]{1,2}/[0-9]{1,2}' | head -1)
+
+          if [ -z "$RELEASE_DATE" ]; then
+            RELEASE_DATE=$(date +%Y-%m-%d)
+          else
+            # Convert YYYY/M/D to YYYY-MM-DD
+            RELEASE_DATE=$(echo "$RELEASE_DATE" | sed 's|/|-|g')
+          fi
+
+          # Update README
+          sed -i "s/\*\*JDK 26 EA Build [0-9]*\*\* (Released: [0-9-]*)/\*\*JDK 26 EA Build $BUILD\*\* (Released: $RELEASE_DATE)/" README.md
+
+          # Check if README was modified
+          if git diff --quiet README.md; then
+            echo "README not modified"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add README.md
+            git commit -m "docs: update README to JDK 26 EA Build $BUILD"
+            git push
+          fi
+
+      - name: Fetch release notes from OpenJDK
+        if: steps.check_tag.outputs.exists == 'false'
+        id: jdk_notes
+        run: |
+          BUILD="${{ steps.version.outputs.build }}"
+
+          # Try to fetch release notes (if available)
+          NOTES_URL="https://jdk.java.net/26/"
+
+          echo "notes_url=$NOTES_URL" >> $GITHUB_OUTPUT
+
       - name: Create Release
         if: steps.check_tag.outputs.exists == 'false'
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.version.outputs.version }}
-          name: JDK 26 EA ${{ steps.version.outputs.version }}
+          name: JDK 26 EA Build ${{ steps.version.outputs.build }}
           body: |
-            JDK 26 Early Access Build ${{ steps.version.outputs.version }}
+            # JDK 26 Early Access Build ${{ steps.version.outputs.build }}
+
+            OpenJDK 26 Early Access build from [jdk.java.net/26](${{ steps.jdk_notes.outputs.notes_url }})
 
             ## Installation
 
+            ### macOS & Linux
+
             ```bash
-            brew tap trumpyla/jdk26-ea
-            brew install --cask jdk26valhalla
+            brew tap Artagon/jdk26
+            brew install --cask jdk26ea  # macOS only
+            # or
+            brew install jdk26ea  # macOS & Linux
             ```
 
-            For more information, visit https://jdk.java.net/26/
+            ## Supported Platforms
+
+            - macOS ARM64 (Apple Silicon)
+            - macOS x64 (Intel)
+            - Linux ARM64
+            - Linux x64
+
+            ## What's Changed
+
+            ${{ steps.prev_version.outputs.version != 'none' && format('### Changes from {0}', steps.prev_version.outputs.version) || '### Initial Release' }}
+
+            ${{ steps.changelog.outputs.changelog }}
+
+            ## Checksums
+
+            All SHA256 checksums are verified automatically. See the formula/cask files for details.
+
+            ## Links
+
+            - [OpenJDK JDK 26 EA Downloads](https://jdk.java.net/26/)
+            - [OpenJDK Project](https://openjdk.org/)
+
+            ---
+
+            **Note:** This is an early-access build and should not be used in production environments.
           draft: false
           prerelease: true
