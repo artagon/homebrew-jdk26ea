@@ -31,7 +31,7 @@ scopes="cask|formula|workflow|docs|scripts"
 # - type: description
 # - type!: description (breaking change)
 # - type(scope)!: description (breaking change)
-pattern="^(${types})(\(${scopes}\))?!?: .{1,100}"
+pattern="^(${types})(\\((${scopes})\\))?!?: .{1,100}"
 
 # Allow merge commits
 if echo "$commit_msg" | grep -qE "^Merge branch"; then
