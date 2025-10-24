@@ -1,8 +1,8 @@
-# Claude Code Instructions for homebrew-jdk26ea
+# AI Assistant Instructions for homebrew-jdk26ea
 
 ## Repository-Specific Guidelines
 
-When working with this repository, Claude Code should follow these specific instructions:
+When working with this repository, AI assistants (Claude/ChatGPT/Codex/Gemini/Grok) should follow these specific instructions:
 
 ## 1. Commit Message Requirements
 
@@ -53,11 +53,41 @@ BREAKING CHANGE: Users must uninstall old cask and reinstall with new name
 ```
 
 ### Commit Footer Format
-Always include this footer:
+Always include an AI attribution footer using one of these formats:
+
+**For Claude:**
 ```
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
+🤖 Generated with AI assistance (Claude)
 
 Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+**For ChatGPT:**
+```
+🤖 Generated with AI assistance (ChatGPT)
+
+Co-Authored-By: ChatGPT <noreply@openai.com>
+```
+
+**For Codex:**
+```
+🤖 Generated with AI assistance (Codex)
+
+Co-Authored-By: Codex <noreply@openai.com>
+```
+
+**For Gemini:**
+```
+🤖 Generated with AI assistance (Gemini)
+
+Co-Authored-By: Gemini <noreply@google.com>
+```
+
+**For Grok:**
+```
+🤖 Generated with AI assistance (Grok)
+
+Co-Authored-By: Grok <noreply@x.ai>
 ```
 
 ## 2. Ruby Code Style
