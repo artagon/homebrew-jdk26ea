@@ -1,7 +1,6 @@
 cask "jdk26ea" do
   version "26-ea+20"
   name "JDK 26 EA"
-
   desc "Early-Access JDK 26"
   homepage "https://jdk.java.net/26/"
 
@@ -25,7 +24,7 @@ cask "jdk26ea" do
 
     # Validate source exists before installation
     ohai "Installing JDK 26 EA to #{jdk_target}"
-    unless jdk_src && File.directory?(jdk_src)
+    if jdk_src.nil? || !File.directory?(jdk_src)
       opoo "JDK source directory not found in staged path"
       return
     end

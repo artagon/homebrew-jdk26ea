@@ -65,10 +65,6 @@ jobs:
             arch: x64
           - os: ubuntu-24.04
             arch: x64
-          # ARM64 Linux testing requires self-hosted runners or GitHub Enterprise
-          # Uncomment when ARM runners are available:
-          # - os: [self-hosted, linux, ARM64]
-          #   arch: arm64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -131,3 +127,70 @@ jobs:
         if: always()
         run: |
           brew uninstall jdk26ea || true
+
+  test-install-linux-arm64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Test installation on ARM64 via Docker
+        run: |
+          docker run --rm --platform linux/arm64 \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /workspace \
+            ubuntu:22.04 bash -c '
+              set -e
+
+              # Display system info
+              echo "Architecture: $(uname -m)"
+              echo "OS: $(cat /etc/os-release | grep PRETTY_NAME)"
+
+              # Install dependencies
+              apt-get update
+              apt-get install -y curl git build-essential procps file
+
+              # Install Homebrew
+              NONINTERACTIVE=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+              # Add Homebrew to PATH
+              eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
+              # Tap repository
+              brew tap artagon/jdk26ea /workspace
+
+              # Install JDK
+              brew install jdk26ea
+
+              # Verify installation
+              JDK_PREFIX="$(brew --prefix jdk26ea)"
+              if [ -d "$JDK_PREFIX" ]; then
+                echo "✅ JDK installed successfully at $JDK_PREFIX"
+                "$JDK_PREFIX/bin/java" -version
+                "$JDK_PREFIX/bin/javac" -version
+              else
+                echo "❌ JDK installation failed"
+                exit 1
+              fi
+
+              # Test basic Java functionality
+              export JAVA_HOME="$JDK_PREFIX"
+              export PATH="$JAVA_HOME/bin:$PATH"
+
+              cat > HelloWorld.java << "EOF"
+              public class HelloWorld {
+                  public static void main(String[] args) {
+                      System.out.println("JDK 26 EA ARM64 is working!");
+                      System.out.println("Architecture: " + System.getProperty("os.arch"));
+                      System.out.println("Java version: " + System.getProperty("java.version"));
+                  }
+              }
+              EOF
+
+              javac HelloWorld.java
+              java HelloWorld
+            '
