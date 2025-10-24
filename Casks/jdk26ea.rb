@@ -3,6 +3,9 @@ cask "jdk26ea" do
   name "JDK 26 EA"
   desc "Early-Access JDK 26"
   homepage "https://jdk.java.net/26/"
+
+  # Installs to: /Library/Java/JavaVirtualMachines/jdk-26-ea.jdk
+  # Supports: macOS ARM64 (Apple Silicon) and x64 (Intel)
   on_macos do
     on_arm do
       url "https://download.java.net/java/early_access/jdk26/20/GPL/openjdk-26-ea+20_macos-aarch64_bin.tar.gz"
