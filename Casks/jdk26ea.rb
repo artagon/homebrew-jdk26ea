@@ -21,16 +21,28 @@ cask "jdk26ea" do
 
   postflight do
     jdk_target = "/Library/Java/JavaVirtualMachines/jdk-26-ea.jdk"
-    jdk_src = Dir["#{staged_path}/jdk-*"].first
+    jdk_src = Dir["#{staged_path}/jdk-*.jdk"].first
 
-    # Use rsync to copy JDK files
-    if jdk_src
-      system_command "/bin/mkdir", args: ["-p", jdk_target], sudo: true
-      system_command "/usr/bin/rsync", args: ["-a", jdk_src + "/", jdk_target + "/"], sudo: true
+    # Validate source exists before installation
+    ohai "Installing JDK 26 EA to #{jdk_target}"
+    unless jdk_src && File.directory?(jdk_src)
+      opoo "JDK source directory not found in staged path"
+      return
     end
+
+    # Use ditto for secure, atomic copy with full metadata preservation
+    system_command "/usr/bin/ditto",
+                   args: ["--noqtn", jdk_src, jdk_target],
+                   sudo: true
   end
 
   uninstall_postflight do
-    system_command "/bin/rm", args: ["-rf", "/Library/Java/JavaVirtualMachines/jdk-26-ea.jdk"], sudo: true
+    jdk_path = "/Library/Java/JavaVirtualMachines/jdk-26-ea.jdk"
+    if File.directory?(jdk_path)
+      ohai "Removing JDK 26 EA from #{jdk_path}"
+      system_command "/bin/rm",
+                     args: ["-rf", jdk_path],
+                     sudo: true
+    end
   end
 end
