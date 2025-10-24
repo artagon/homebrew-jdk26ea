@@ -1,47 +1,41 @@
 cask "jdk26ea" do
-  version "26-ea+20"
+  arch arm: "aarch64", intel: "x64"
+
+  version "26-ea+20,20"
+  # Installs to: /Library/Java/JavaVirtualMachines/jdk-26-ea.jdk
+  # Supports: macOS ARM64 (Apple Silicon) and x64 (Intel)
+  sha256 arm:   "dc75cdb507e47a66b0edc73d1cfc4a1c011078d5d0785c7660320d2e9c3e04d4",
+         intel: "5da4095d77d50eb19d8df7f0d128c16a6ff933d6cadc5cbf6fff1bf0530b6474"
+
+  url "https://download.java.net/java/early_access/jdk26/#{version.csv.second}/GPL/openjdk-#{version.csv.first}_macos-#{arch}_bin.tar.gz"
   name "JDK 26 EA"
   desc "Early-Access JDK 26"
   homepage "https://jdk.java.net/26/"
 
-  # Installs to: /Library/Java/JavaVirtualMachines/jdk-26-ea.jdk
-  # Supports: macOS ARM64 (Apple Silicon) and x64 (Intel)
-  on_macos do
-    on_arm do
-      sha256 "dc75cdb507e47a66b0edc73d1cfc4a1c011078d5d0785c7660320d2e9c3e04d4"
-      url "https://download.java.net/java/early_access/jdk26/20/GPL/openjdk-26-ea+20_macos-aarch64_bin.tar.gz"
-    end
-
-    on_intel do
-      sha256 "5da4095d77d50eb19d8df7f0d128c16a6ff933d6cadc5cbf6fff1bf0530b6474"
-      url "https://download.java.net/java/early_access/jdk26/20/GPL/openjdk-26-ea+20_macos-x64_bin.tar.gz"
-    end
-  end
-
   postflight do
-    jdk_target = "/Library/Java/JavaVirtualMachines/jdk-26-ea.jdk"
-    jdk_src = Dir["#{staged_path}/jdk-*.jdk"].first
+    require "pathname"
 
-    # Validate source exists before installation
+    staged_root = staged_path.realpath
+    candidates = Dir["#{staged_root}/jdk-*.jdk"]
+    odie "Expected exactly one JDK bundle in #{staged_root}, found #{candidates.length}" if candidates.length != 1
+
+    jdk_src = Pathname(candidates.first).realpath
+    odie "Staged JDK bundle #{jdk_src} is not a directory" unless jdk_src.directory?
+    odie "Resolved JDK path escapes staging area" unless jdk_src.to_s.start_with?(staged_root.to_s)
+
+    jdk_target = Pathname("/Library/Java/JavaVirtualMachines/jdk-26-ea.jdk")
+    if jdk_target.exist?
+      ohai "Removing existing JDK at #{jdk_target}"
+      system_command! "/bin/rm",
+                      args: ["-rf", jdk_target.to_s],
+                      sudo: true
+    end
+
     ohai "Installing JDK 26 EA to #{jdk_target}"
-    if jdk_src.nil? || !File.directory?(jdk_src)
-      opoo "JDK source directory not found in staged path"
-      return
-    end
-
-    # Use ditto for secure, atomic copy with full metadata preservation
-    system_command "/usr/bin/ditto",
-                   args: ["--noqtn", jdk_src, jdk_target],
-                   sudo: true
+    system_command! "/usr/bin/ditto",
+                    args: ["--noqtn", jdk_src.to_s, jdk_target.to_s],
+                    sudo: true
   end
 
-  uninstall_postflight do
-    jdk_path = "/Library/Java/JavaVirtualMachines/jdk-26-ea.jdk"
-    if File.directory?(jdk_path)
-      ohai "Removing JDK 26 EA from #{jdk_path}"
-      system_command "/bin/rm",
-                     args: ["-rf", jdk_path],
-                     sudo: true
-    end
-  end
+  uninstall delete: "/Library/Java/JavaVirtualMachines/jdk-26-ea.jdk"
 end
