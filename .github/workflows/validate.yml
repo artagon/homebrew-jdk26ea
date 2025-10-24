@@ -25,7 +25,7 @@ jobs:
           brew style Formula/jdk26ea.rb
           ruby -c Formula/jdk26ea.rb
 
-  test-install:
+  test-install-macos:
     strategy:
       matrix:
         os: [macos-13, macos-14]
@@ -55,3 +55,79 @@ jobs:
         if: always()
         run: |
           brew uninstall --cask jdk26ea || true
+
+  test-install-linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            arch: x64
+          - os: ubuntu-24.04
+            arch: x64
+          # ARM64 Linux testing requires self-hosted runners or GitHub Enterprise
+          # Uncomment when ARM runners are available:
+          # - os: [self-hosted, linux, ARM64]
+          #   arch: arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Display system info
+        run: |
+          echo "OS: $(uname -s)"
+          echo "Arch: $(uname -m)"
+          echo "Distribution: $(cat /etc/os-release | grep PRETTY_NAME)"
+
+      - name: Tap repository
+        run: |
+          brew tap artagon/jdk26ea "$GITHUB_WORKSPACE"
+
+      - name: Test formula installation
+        run: |
+          brew install jdk26ea
+
+      - name: Verify installation
+        run: |
+          JDK_PREFIX="$(brew --prefix jdk26ea)"
+          if [ -d "$JDK_PREFIX" ]; then
+            echo "✅ JDK installed successfully at $JDK_PREFIX"
+            "$JDK_PREFIX/bin/java" -version
+          else
+            echo "❌ JDK installation failed"
+            exit 1
+          fi
+
+      - name: Test JAVA_HOME setup
+        run: |
+          export JAVA_HOME="$(brew --prefix jdk26ea)"
+          echo "JAVA_HOME=$JAVA_HOME"
+          echo "Testing java compiler and runtime..."
+          "$JAVA_HOME/bin/java" -version
+          "$JAVA_HOME/bin/javac" -version
+
+      - name: Test basic Java functionality
+        run: |
+          export JAVA_HOME="$(brew --prefix jdk26ea)"
+          export PATH="$JAVA_HOME/bin:$PATH"
+
+          # Create and compile a test program
+          cat > HelloWorld.java << 'EOF'
+          public class HelloWorld {
+              public static void main(String[] args) {
+                  System.out.println("JDK 26 EA is working!");
+                  System.out.println("Java version: " + System.getProperty("java.version"));
+              }
+          }
+          EOF
+
+          javac HelloWorld.java
+          java HelloWorld
+
+      - name: Cleanup
+        if: always()
+        run: |
+          brew uninstall jdk26ea || true
