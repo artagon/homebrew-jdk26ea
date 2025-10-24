@@ -139,14 +139,31 @@ BREAKING CHANGE: Users must uninstall old cask and reinstall with new name
 ```
 
 **Git Hook:**
-This repository includes a commit-msg hook that validates your commit messages. Install it by running:
+This repository includes a commit-msg hook that validates your commit messages automatically.
 
+**Setup:**
+The hook is automatically active when you work in this repository (configured via `core.hooksPath`).
+
+To manually configure:
 ```bash
-# The hooks are automatically installed when you clone the repository
-# To manually install:
-cp .githooks/commit-msg .git/hooks/commit-msg
-chmod +x .git/hooks/commit-msg
+git config core.hooksPath .githooks
 ```
+
+**Testing the Hook:**
+```bash
+# This should pass
+echo "feat(cask): add new feature" | .githooks/commit-msg /dev/stdin
+
+# This should fail
+echo "bad commit message" | .githooks/commit-msg /dev/stdin
+```
+
+**Bypassing (Not Recommended):**
+```bash
+git commit --no-verify -m "message"
+```
+
+Note: PRs that don't follow semantic commit guidelines may be rejected.
 
 ### Updating to a New JDK 26 EA Build
 
@@ -222,17 +239,69 @@ The issue-driven workflow allows you to:
 
 ## Branch Protection
 
-The `main` branch is protected with the following rules:
+The `main` branch is protected to ensure code quality and prevent accidental changes.
 
-- ✅ Require pull request before merging
-- ✅ Require status checks to pass (Validate)
-- ✅ Require conversation resolution
-- ❌ No force pushes allowed
-- ❌ No deletions allowed
+### Protection Rules
 
-All changes must go through pull requests, ensuring code review and quality checks.
+- ✅ **Require pull request before merging**
+  - Required approvals: 0 (for single maintainer)
+  - Dismiss stale reviews on new commits
+- ✅ **Require status checks to pass**
+  - `Validate` - Validates cask/formula syntax
+  - Branches must be up to date before merging
+- ✅ **Require conversation resolution**
+- ❌ **No force pushes allowed**
+- ❌ **No deletions allowed**
 
-See [`.github/BRANCH_PROTECTION.md`](.github/BRANCH_PROTECTION.md) for detailed configuration.
+### Merge Options
+
+- ✅ Allow merge commits
+- ✅ Allow squash merging (recommended for clean history)
+- ❌ Rebase merging disabled
+- ✅ Automatically delete head branches after merge
+
+### Benefits
+
+1. **Prevents accidental direct commits** - All changes must go through pull requests
+2. **Enforces quality checks** - Validates syntax and semantic commits
+3. **Maintains clean history** - Requires conversation resolution, prevents force pushes
+4. **Automated cleanup** - Auto-deletes merged branches
+
+### Development Workflow
+
+```bash
+# 1. Create feature/fix branch
+git checkout -b feat/my-feature
+
+# 2. Make changes and commit with semantic commits
+git add .
+git commit -m "feat(cask): add new feature"
+
+# 3. Push branch
+git push origin feat/my-feature
+
+# 4. Create pull request on GitHub
+# 5. Wait for 'Validate' status check to pass
+# 6. Merge PR (branch will be auto-deleted)
+```
+
+### Configuration (Maintainers Only)
+
+View/edit protection settings at:
+https://github.com/artagon/homebrew-jdk26ea/settings/branches
+
+Or via API:
+```bash
+# Requires admin permissions
+bash <<'EOF'
+TOKEN=$(gh auth token)
+curl -s -X PUT \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  https://api.github.com/repos/artagon/homebrew-jdk26ea/branches/main/protection \
+  -d @.github/branch-protection.json
+EOF
+```
 
 ## License
 
