@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  validate:
+  validate-syntax:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,5 +17,41 @@ jobs:
 
       - name: Validate cask syntax
         run: |
-          brew style Casks/jdk26ea.rb || true
+          brew style Casks/jdk26ea.rb
           ruby -c Casks/jdk26ea.rb
+
+      - name: Validate formula syntax
+        run: |
+          brew style Formula/jdk26ea.rb
+          ruby -c Formula/jdk26ea.rb
+
+  test-install:
+    strategy:
+      matrix:
+        os: [macos-13, macos-14]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tap repository
+        run: |
+          brew tap artagon/jdk26ea "$GITHUB_WORKSPACE"
+
+      - name: Test cask installation
+        run: |
+          brew install --cask jdk26ea
+
+      - name: Verify installation
+        run: |
+          if [ -d "/Library/Java/JavaVirtualMachines/jdk-26-ea.jdk" ]; then
+            echo "✅ JDK installed successfully"
+            /Library/Java/JavaVirtualMachines/jdk-26-ea.jdk/Contents/Home/bin/java -version
+          else
+            echo "❌ JDK installation failed"
+            exit 1
+          fi
+
+      - name: Cleanup
+        if: always()
+        run: |
+          brew uninstall --cask jdk26ea || true
