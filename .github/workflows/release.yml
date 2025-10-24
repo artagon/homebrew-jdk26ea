@@ -18,6 +18,16 @@ jobs:
         with:
           fetch-depth: 0  # Fetch all history for changelog
 
+      - name: Set up Homebrew
+        if: runner.os == 'Linux'
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Audit cask
+        run: |
+          brew untap artagon/jdk26ea || true
+          brew tap --custom-remote artagon/jdk26ea "$GITHUB_WORKSPACE"
+          brew audit --cask artagon/jdk26ea/jdk26ea
+
       - name: Extract version from cask
         id: version
         run: |
@@ -127,7 +137,7 @@ jobs:
             ### macOS & Linux
 
             ```bash
-            brew tap Artagon/jdk26
+            brew tap Artagon/jdk26ea
             brew install --cask jdk26ea  # macOS only
             # or
             brew install jdk26ea  # macOS & Linux

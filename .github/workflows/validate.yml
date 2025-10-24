@@ -39,7 +39,8 @@ jobs:
 
       - name: Tap repository
         run: |
-          brew tap artagon/jdk26ea "$GITHUB_WORKSPACE"
+          brew untap artagon/jdk26ea || true
+          brew tap --custom-remote artagon/jdk26ea "$GITHUB_WORKSPACE"
 
       - name: Test cask installation
         run: |
@@ -84,7 +85,8 @@ jobs:
 
       - name: Tap repository
         run: |
-          brew tap artagon/jdk26ea "$GITHUB_WORKSPACE"
+          brew untap artagon/jdk26ea || true
+          brew tap --custom-remote artagon/jdk26ea "$GITHUB_WORKSPACE"
 
       - name: Test formula installation
         run: |
