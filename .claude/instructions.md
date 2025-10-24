@@ -54,20 +54,17 @@ BREAKING CHANGE: Users must uninstall old cask and reinstall with new name
 
 ### Commit Footer Format
 
-**IMPORTANT:** Do NOT mention specific AI models (Claude, ChatGPT, Codex, Gemini, Grok) in commits.
+**IMPORTANT:** Do NOT include AI attribution in commits.
 
-Always include this generic AI attribution footer:
+Commit messages should follow the standard format without any AI-related footers:
 ```
-🤖 Generated with AI assistance
+type(scope): description
 
-Co-Authored-By: AI Assistant <ai@example.com>
+[optional body]
 ```
 
-This format:
-- Provides transparency about AI involvement
-- Avoids vendor lock-in or bias toward specific AI providers
-- Keeps commit history neutral and professional
-- Works for any AI coding assistant
+No co-author or AI attribution footer should be added. Commits should appear
+as regular human-authored commits without mentioning AI assistance.
 
 ## 2. Ruby Code Style
 
