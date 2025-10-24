@@ -53,42 +53,21 @@ BREAKING CHANGE: Users must uninstall old cask and reinstall with new name
 ```
 
 ### Commit Footer Format
-Always include an AI attribution footer using one of these formats:
 
-**For Claude:**
+**IMPORTANT:** Do NOT mention specific AI models (Claude, ChatGPT, Codex, Gemini, Grok) in commits.
+
+Always include this generic AI attribution footer:
 ```
-🤖 Generated with AI assistance (Claude)
+🤖 Generated with AI assistance
 
-Co-Authored-By: Claude <noreply@anthropic.com>
-```
-
-**For ChatGPT:**
-```
-🤖 Generated with AI assistance (ChatGPT)
-
-Co-Authored-By: ChatGPT <noreply@openai.com>
+Co-Authored-By: AI Assistant <ai@example.com>
 ```
 
-**For Codex:**
-```
-🤖 Generated with AI assistance (Codex)
-
-Co-Authored-By: Codex <noreply@openai.com>
-```
-
-**For Gemini:**
-```
-🤖 Generated with AI assistance (Gemini)
-
-Co-Authored-By: Gemini <noreply@google.com>
-```
-
-**For Grok:**
-```
-🤖 Generated with AI assistance (Grok)
-
-Co-Authored-By: Grok <noreply@x.ai>
-```
+This format:
+- Provides transparency about AI involvement
+- Avoids vendor lock-in or bias toward specific AI providers
+- Keeps commit history neutral and professional
+- Works for any AI coding assistant
 
 ## 2. Ruby Code Style
 
