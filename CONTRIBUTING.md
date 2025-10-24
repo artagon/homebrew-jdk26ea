@@ -90,7 +90,63 @@ We welcome contributions! Here's how to submit changes:
 - **Update documentation** - If you change functionality, update the README
 - **Test thoroughly** - Ensure the cask/formula installs correctly
 - **Follow Ruby style** - Use proper indentation and Homebrew conventions
-- **Write clear commit messages** - Describe what and why, not just how
+- **Write clear commit messages** - Use semantic commits (see below)
+
+### Semantic Commit Messages
+
+This project follows the [Conventional Commits](https://www.conventionalcommits.org/) specification. All commit messages must be formatted as:
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer]
+```
+
+**Types:**
+- `feat:` - A new feature
+- `fix:` - A bug fix
+- `docs:` - Documentation only changes
+- `style:` - Changes that don't affect code meaning (formatting, missing semicolons, etc.)
+- `refactor:` - Code change that neither fixes a bug nor adds a feature
+- `perf:` - Performance improvements
+- `test:` - Adding or modifying tests
+- `chore:` - Changes to build process, dependencies, or auxiliary tools
+- `ci:` - Changes to CI configuration files and scripts
+
+**Scope (optional):**
+- `cask` - Changes to the cask file
+- `formula` - Changes to the formula file
+- `workflow` - Changes to GitHub Actions workflows
+- `docs` - Changes to documentation
+
+**Examples:**
+```bash
+feat(cask): add support for JDK 26 EA Build 21
+fix(formula): correct SHA256 checksum for Linux ARM64
+docs: update README with new installation instructions
+chore(workflow): update auto-update schedule to run twice daily
+```
+
+**Breaking Changes:**
+If your change introduces a breaking change, add `BREAKING CHANGE:` in the footer or add `!` after the type/scope:
+
+```bash
+feat(cask)!: rename from jdk26valhalla to jdk26ea
+
+BREAKING CHANGE: Users must uninstall old cask and reinstall with new name
+```
+
+**Git Hook:**
+This repository includes a commit-msg hook that validates your commit messages. Install it by running:
+
+```bash
+# The hooks are automatically installed when you clone the repository
+# To manually install:
+cp .githooks/commit-msg .git/hooks/commit-msg
+chmod +x .git/hooks/commit-msg
+```
 
 ### Updating to a New JDK 26 EA Build
 
