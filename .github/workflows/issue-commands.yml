@@ -1,0 +1,183 @@
+name: Issue Commands
+
+on:
+  issue_comment:
+    types: [created]
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  handle-issue-command:
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/')) ||
+      (github.event_name == 'issues' && github.event.label.name == 'update-request')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Parse command from comment
+        if: github.event_name == 'issue_comment'
+        id: parse_command
+        run: |
+          COMMENT_BODY="${{ github.event.comment.body }}"
+
+          # Extract command (first word starting with /)
+          COMMAND=$(echo "$COMMENT_BODY" | head -n1 | grep -oP '^/\S+' || echo "")
+
+          echo "command=$COMMAND" >> $GITHUB_OUTPUT
+          echo "Detected command: $COMMAND"
+
+      - name: Check permissions
+        id: check_perms
+        run: |
+          # Check if commenter is a collaborator
+          USER="${{ github.event.comment.user.login || github.event.issue.user.login }}"
+
+          # Check if user has write access
+          PERM=$(gh api repos/${{ github.repository }}/collaborators/$USER/permission --jq '.permission' 2>/dev/null || echo "none")
+
+          if [[ "$PERM" == "admin" || "$PERM" == "write" ]]; then
+            echo "authorized=true" >> $GITHUB_OUTPUT
+          else
+            echo "authorized=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Handle /update command
+        if: |
+          steps.parse_command.outputs.command == '/update' &&
+          steps.check_perms.outputs.authorized == 'true'
+        run: |
+          echo "🔄 Triggering JDK update workflow..."
+
+          gh workflow run auto-update.yml
+
+          gh issue comment ${{ github.event.issue.number }} --body \
+            "✅ Update workflow triggered! Check the [Actions tab](https://github.com/${{ github.repository }}/actions/workflows/auto-update.yml) for progress."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Handle /check-version command
+        if: |
+          steps.parse_command.outputs.command == '/check-version' &&
+          steps.check_perms.outputs.authorized == 'true'
+        run: |
+          echo "🔍 Checking for latest JDK 26 EA version..."
+
+          # Fetch current version
+          CURRENT_VERSION=$(grep -oP 'version "\K[^"]+' Casks/jdk26ea.rb)
+          CURRENT_BUILD=$(echo "$CURRENT_VERSION" | grep -oP '\+\K\d+')
+
+          # Fetch latest version from JDK website
+          page=$(curl -fsSL "https://jdk.java.net/26/")
+          LATEST_BUILD=$(echo "$page" | grep -oP 'Build \K\d+' | head -1)
+
+          if [ "$LATEST_BUILD" == "$CURRENT_BUILD" ]; then
+            STATUS="✅ **Up to date!**"
+            MESSAGE="Current version: \`26-ea+${CURRENT_BUILD}\` matches latest build ${LATEST_BUILD}"
+          else
+            STATUS="⚠️ **Update available!**"
+            MESSAGE="Current version: \`26-ea+${CURRENT_BUILD}\`\nLatest version: \`26-ea+${LATEST_BUILD}\`\n\nRun \`/update\` to trigger an update."
+          fi
+
+          gh issue comment ${{ github.event.issue.number }} --body \
+            "${STATUS}
+
+${MESSAGE}
+
+[View latest builds](https://jdk.java.net/26/)"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Handle /help command
+        if: steps.parse_command.outputs.command == '/help'
+        run: |
+          gh issue comment ${{ github.event.issue.number }} --body \
+            "## Available Commands
+
+### For Maintainers
+- \`/update\` - Trigger JDK update check and PR creation
+- \`/check-version\` - Check current vs latest JDK 26 EA version
+- \`/validate\` - Run validation checks on cask/formula
+
+### For Contributors
+- \`/help\` - Show this help message
+
+### Usage
+Simply comment on an issue with one of the commands above.
+
+### More Information
+See [CONTRIBUTING.md](https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md) for details on contributing to this project."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Handle unauthorized access
+        if: |
+          steps.parse_command.outputs.command != '' &&
+          steps.parse_command.outputs.command != '/help' &&
+          steps.check_perms.outputs.authorized == 'false'
+        run: |
+          gh issue comment ${{ github.event.issue.number }} --body \
+            "❌ You don't have permission to run this command.
+
+Only repository collaborators with write access can execute commands.
+
+You can still:
+- Report bugs using the bug report template
+- Request features using the feature request template
+- Request JDK updates using the build update template"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Handle update-request label
+        if: |
+          github.event_name == 'issues' &&
+          github.event.label.name == 'update-request' &&
+          github.event.action == 'labeled'
+        run: |
+          echo "📋 Issue labeled as update-request, triggering update check..."
+
+          gh workflow run auto-update.yml
+
+          gh issue comment ${{ github.event.issue.number }} --body \
+            "✅ Update check triggered automatically!
+
+This issue was labeled as an update request. The auto-update workflow will check for new JDK 26 EA builds and create a PR if an update is available.
+
+Check the [Actions tab](https://github.com/${{ github.repository }}/actions/workflows/auto-update.yml) for progress."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Handle /validate command
+        if: |
+          steps.parse_command.outputs.command == '/validate' &&
+          steps.check_perms.outputs.authorized == 'true'
+        run: |
+          echo "🔍 Validating cask and formula..."
+
+          # Validate Ruby syntax
+          CASK_VALID=$(ruby -c Casks/jdk26ea.rb 2>&1)
+          FORMULA_VALID=$(ruby -c Formula/jdk26ea.rb 2>&1)
+
+          if echo "$CASK_VALID" | grep -q "Syntax OK" && echo "$FORMULA_VALID" | grep -q "Syntax OK"; then
+            STATUS="✅ **Validation passed!**"
+            MESSAGE="Both cask and formula have valid Ruby syntax."
+          else
+            STATUS="❌ **Validation failed!**"
+            MESSAGE="**Cask:** \`\`\`\n${CASK_VALID}\n\`\`\`\n\n**Formula:** \`\`\`\n${FORMULA_VALID}\n\`\`\`"
+          fi
+
+          gh issue comment ${{ github.event.issue.number }} --body \
+            "${STATUS}
+
+${MESSAGE}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

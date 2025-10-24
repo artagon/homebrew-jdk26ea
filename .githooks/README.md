@@ -1,6 +1,6 @@
 # Git Hooks
 
-This directory contains git hooks for the homebrew-jdk26 repository.
+This directory contains git hooks for the homebrew-jdk26ea repository.
 
 ## Setup
 

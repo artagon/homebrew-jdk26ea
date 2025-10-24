@@ -2,15 +2,15 @@
 
 Homebrew tap for JDK 26 Early Access builds with automated updates, CI/CD, and support for both macOS and Linux.
 
-[![Release](https://github.com/Artagon/homebrew-jdk26/actions/workflows/release.yml/badge.svg)](https://github.com/Artagon/homebrew-jdk26/actions/workflows/release.yml)
-[![Validate](https://github.com/Artagon/homebrew-jdk26/actions/workflows/validate.yml/badge.svg)](https://github.com/Artagon/homebrew-jdk26/actions/workflows/validate.yml)
+[![Release](https://github.com/Artagon/homebrew-jdk26ea/actions/workflows/release.yml/badge.svg)](https://github.com/Artagon/homebrew-jdk26ea/actions/workflows/release.yml)
+[![Validate](https://github.com/Artagon/homebrew-jdk26ea/actions/workflows/validate.yml/badge.svg)](https://github.com/Artagon/homebrew-jdk26ea/actions/workflows/validate.yml)
 
 ## Quick Start
 
 ### Cask Installation (macOS)
 
 ```bash
-brew tap Artagon/jdk26
+brew tap Artagon/jdk26ea
 brew install --cask jdk26ea
 ```
 
@@ -19,7 +19,7 @@ The cask installation places JDK in `/Library/Java/JavaVirtualMachines/jdk-26-ea
 ### Formula Installation (macOS/Linux)
 
 ```bash
-brew tap Artagon/jdk26
+brew tap Artagon/jdk26ea
 brew install jdk26ea
 ```
 
@@ -82,7 +82,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deta
 
 ## Issue Reporting
 
-Found a problem? [Open an issue](https://github.com/Artagon/homebrew-jdk26/issues/new/choose) using our issue templates.
+Found a problem? [Open an issue](https://github.com/Artagon/homebrew-jdk26ea/issues/new/choose) using our issue templates.
 
 ## Automated Updates
 
