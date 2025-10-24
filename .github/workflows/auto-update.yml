@@ -80,14 +80,17 @@ jobs:
           current_build=${{ steps.fetch_version.outputs.current_build }}
 
           # Update Cask
-          sed -i "s/26-ea+${current_build}/26-ea+${build}/g" Casks/jdk26ea.rb
-          sed -i "s|jdk26/${current_build}/GPL|jdk26/${build}/GPL|g" Casks/jdk26ea.rb
+          new_cask_version="26-ea+${build},${build}"
+          sed -i "s|version \".*\"|version \"${new_cask_version}\"|g" Casks/jdk26ea.rb
 
           # Update checksums in Cask
           awk -v arm="${{ steps.checksums.outputs.sha_mac_arm }}" \
-              -v x64="${{ steps.checksums.outputs.sha_mac_x64 }}" \
-              '/on_arm/,/sha256/ { if (/sha256/) { sub(/sha256 ".*"/, "sha256 \"" arm "\"") } }
-               /on_intel/,/sha256/ { if (/sha256/) { sub(/sha256 ".*"/, "sha256 \"" x64 "\"") } }
+              -v intel="${{ steps.checksums.outputs.sha_mac_x64 }}" \
+              '/sha256 arm:/ {
+                 print "  sha256 arm:   \"" arm "\","
+                 print "         intel: \"" intel "\""
+                 next
+               }
                {print}' Casks/jdk26ea.rb > Casks/jdk26ea.rb.tmp && mv Casks/jdk26ea.rb.tmp Casks/jdk26ea.rb
 
       - name: Update formula

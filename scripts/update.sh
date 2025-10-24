@@ -53,15 +53,16 @@ if [[ -z "$build_number" ]]; then
     exit 1
 fi
 
+cask_version="26-ea+${build_number},${build_number}"
 version="26-ea+${build_number}"
-log_info "Latest build: $version"
+log_info "Latest build: $version (cask version key: $cask_version)"
 
 # Get current version from cask
 current_version=$(grep -oP 'version "\K[^"]+' "$CASK" 2>/dev/null || echo "unknown")
 log_info "Current version: $current_version"
 
-if [[ "$version" == "$current_version" ]]; then
-    log_info "Already at latest version: $version"
+if [[ "$cask_version" == "$current_version" ]]; then
+    log_info "Already at latest version: $cask_version"
     exit 0
 fi
 
@@ -113,27 +114,16 @@ cp "$FORMULA" "${FORMULA}.backup"
 log_info "Updating Cask..."
 
 # Update version
-sed -i.tmp "s/version \".*\"/version \"$version\"/" "$CASK"
+sed -i.tmp "s/version \".*\"/version \"$cask_version\"/" "$CASK"
 
-# Update URLs and checksums for macOS
-sed -i.tmp \
-    -e "s|https://download.java.net/java/early_access/jdk26/[0-9]*/GPL/openjdk-.*_macos-aarch64_bin.tar.gz|${urls[mac_arm]}|g" \
-    -e "s|https://download.java.net/java/early_access/jdk26/[0-9]*/GPL/openjdk-.*_macos-x64_bin.tar.gz|${urls[mac_x64]}|g" \
-    "$CASK"
-
-# Update checksums in cask (more precise)
-awk -v arm="${shas[mac_arm]}" -v x64="${shas[mac_x64]}" '
-    /on_arm/,/end/ {
-        if (/sha256/) {
-            gsub(/sha256 ".*"/, "sha256 \"" arm "\"")
-        }
+# Update checksums in cask
+awk -v arm="${shas[mac_arm]}" -v intel="${shas[mac_x64]}" '
+    /sha256 arm:/ {
+        print "  sha256 arm:   \"" arm "\","
+        print "         intel: \"" intel "\""
+        next
     }
-    /on_intel/,/end/ {
-        if (/sha256/ && !/on_arm/) {
-            gsub(/sha256 ".*"/, "sha256 \"" x64 "\"")
-        }
-    }
-    {print}
+    { print }
 ' "$CASK" > "${CASK}.new" && mv "${CASK}.new" "$CASK"
 
 # Remove sed temp files
@@ -219,8 +209,9 @@ rm -f "${CASK}.backup" "${FORMULA}.backup"
 log_info "Successfully updated to $version"
 echo ""
 echo "Summary of changes:"
-echo "  Previous version: $current_version"
-echo "  New version:      $version"
+echo "  Previous cask version:   $current_version"
+echo "  New cask version:        $cask_version"
+echo "  Formula version updated: $version"
 echo ""
 echo "Updated files:"
 echo "  - $CASK"
