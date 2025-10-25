@@ -146,9 +146,39 @@ echo "⚡ Cursor..."
 echo "  ✓ .cursorrules ($(wc -l < .cursorrules) lines)"
 echo ""
 
+# 5. OPENAI CODEX
+echo "🧠 OpenAI Codex..."
+
+{
+  echo "# AUTO-GENERATED from .model-context/"
+  echo "# DO NOT EDIT DIRECTLY"
+  echo "# Last synced: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+  echo ""
+  echo "# OpenAI Codex Agent Instructions"
+  echo "# https://github.com/openai/codex"
+  echo ""
+
+  # Codex prefers markdown format
+  [ -f "$SHARED_DIR/context.md" ] && cat "$SHARED_DIR/context.md" && echo ""
+  [ -f "$SHARED_DIR/instructions.md" ] && cat "$SHARED_DIR/instructions.md" && echo ""
+  [ -f "$SHARED_DIR/security.md" ] && cat "$SHARED_DIR/security.md" && echo ""
+  [ -f "$SHARED_DIR/style-guide.md" ] && cat "$SHARED_DIR/style-guide.md" && echo ""
+  [ -f "$AGENTS_DIR/openai.md" ] && cat "$AGENTS_DIR/openai.md"
+} > AGENTS.md
+
+echo "  ✓ AGENTS.md ($(wc -l < AGENTS.md) lines)"
+echo ""
+
 # Summary
 echo "=== Sync Complete ==="
 echo ""
 echo "✅ All configurations synced from .model-context/shared/"
+echo ""
+echo "AI Assistants:"
+echo "  • Claude Code   (.claude/)"
+echo "  • Gemini        (.gemini/)"
+echo "  • Copilot       (.github/)"
+echo "  • Cursor        (.cursorrules)"
+echo "  • OpenAI Codex  (AGENTS.md)"
 echo ""
 echo "Verify: ./scripts/verify-model-context-sync.sh"

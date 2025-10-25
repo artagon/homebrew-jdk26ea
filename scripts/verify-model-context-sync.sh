@@ -68,8 +68,19 @@ echo "Checking Cursor..."
 check_file ".cursorrules" ".cursorrules"
 echo ""
 
+echo "Checking OpenAI Codex..."
+check_file "AGENTS.md" "AGENTS.md"
+echo ""
+
 if [ $EXIT_CODE -eq 0 ]; then
   echo "✅ All configurations in sync"
+  echo ""
+  echo "AI Assistants configured:"
+  echo "  • Claude Code"
+  echo "  • Gemini Code Assist"
+  echo "  • GitHub Copilot"
+  echo "  • Cursor"
+  echo "  • OpenAI Codex"
 else
   echo "⚠️  Some files need syncing"
   echo "Run: ./scripts/sync-model-context.sh"
