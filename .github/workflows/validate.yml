@@ -125,3 +125,13 @@ jobs:
         if: always()
         run: |
           brew uninstall --formula jdk26ea || true
+
+  validate-expected:
+    name: ValidateExpected
+    runs-on: ubuntu-latest
+    needs:
+      - validate-syntax
+      - test-install-macos
+      - test-install-linux
+    steps:
+      - run: echo "All validation jobs completed successfully."
