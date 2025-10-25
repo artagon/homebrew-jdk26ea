@@ -1,0 +1,43 @@
+name: First-Time Contributor Check
+
+on:
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if first-time contributor
+        uses: actions/first-interaction@34f15e814fe6a2a25f9e1a0ca5cd8249ac4c4c74 # v1.3.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-message: |
+            👋 Welcome and thank you for your contribution!
+
+            This is your first pull request to this repository. A maintainer will review your changes shortly.
+
+            ## Security Notice
+
+            As a first-time contributor, your workflow runs require manual approval from a maintainer.
+            This is a security measure to protect the project and its users.
+
+            ## What to Expect
+
+            1. ✅ A maintainer will review your changes
+            2. 🔍 Automated checks will run after approval
+            3. 💬 We may request changes or ask questions
+            4. 🎉 Once approved and all checks pass, we'll merge your PR
+
+            ## Contribution Guidelines
+
+            - Follow [Conventional Commits](https://www.conventionalcommits.org/) format
+            - Test your changes locally before submitting
+            - Update documentation if needed
+            - Be patient and responsive to feedback
+
+            Thank you for helping improve this project! 🚀

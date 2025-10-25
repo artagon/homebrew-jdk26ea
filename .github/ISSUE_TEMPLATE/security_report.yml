@@ -1,0 +1,90 @@
+name: Security Vulnerability Report
+description: Report a security vulnerability
+title: "[SECURITY] "
+labels: ["security"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Security Vulnerability Report
+
+        Thank you for responsibly disclosing security issues.
+
+        **⚠️ IMPORTANT**: If this is a critical security issue that could harm users,
+        please consider reporting it privately to the maintainers first.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Vulnerability Description
+      description: Describe the security vulnerability you've discovered
+      placeholder: Provide a clear description of the security issue
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severe do you consider this vulnerability?
+      options:
+        - Critical
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      description: Which part of the project is affected?
+      options:
+        - Workflows (CI/CD)
+        - Cask Definition
+        - Formula Definition
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this vulnerability?
+      placeholder: |
+        1. Step one
+        2. Step two
+        3. Step three
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Potential Impact
+      description: What could an attacker achieve with this vulnerability?
+      placeholder: Describe the potential security impact
+    validations:
+      required: true
+
+  - type: textarea
+    id: fix
+    attributes:
+      label: Suggested Fix (Optional)
+      description: Do you have suggestions for fixing this issue?
+      placeholder: Provide any suggestions or patches you might have
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched for existing security reports
+          required: true
+        - label: I understand this is for security issues only
+          required: true
+        - label: I have not publicly disclosed this vulnerability yet
+          required: true

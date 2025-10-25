@@ -12,6 +12,9 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
+    environment:
+      name: jdk-updates
+      url: https://github.com/${{ github.repository }}/pull/${{ steps.pr.outputs.pull-request-number }}
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
@@ -20,7 +23,7 @@ jobs:
         run: |
           set -euo pipefail
           page_file=$(mktemp)
-          curl -fsSL https://jdk.java.net/26/ -o "$page_file"
+          curl --max-time 30 -fsSL https://jdk.java.net/26/ -o "$page_file"
 
           BUILD=$(grep -oE 'Build [0-9]+' "$page_file" | awk '{print $2}' | head -1)
           if [[ -z "$BUILD" || ! "$BUILD" =~ ^[0-9]+$ ]]; then
@@ -55,7 +58,7 @@ jobs:
             local url=$1
             local label=$2
             local sha
-            sha=$(curl -fsSL "${url}.sha256" | awk '{print $1}')
+            sha=$(curl --max-time 30 -fsSL "${url}.sha256" | awk '{print $1}')
             if [[ -z "$sha" || ! "$sha" =~ ^[0-9a-f]{64}$ ]]; then
               echo "Invalid checksum for ${label}: $sha"
               exit 1
@@ -69,7 +72,7 @@ jobs:
             local label=$3
             local tmp
             tmp=$(mktemp)
-            curl -fsSL "$url" -o "$tmp"
+            curl --max-time 300 -fsSL "$url" -o "$tmp"
             local actual
             actual=$(shasum -a 256 "$tmp" | awk '{print $1}')
             rm -f "$tmp"
@@ -184,6 +187,7 @@ EOF
           PY
 
       - name: Create Pull Request
+        id: pr
         uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c
         with:
           commit-message: "Update JDK 26 EA to ${{ steps.fetch.outputs.version }}"

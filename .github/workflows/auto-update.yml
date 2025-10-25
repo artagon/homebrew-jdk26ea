@@ -12,6 +12,9 @@ permissions:
 jobs:
   check-update:
     runs-on: ubuntu-latest
+    environment:
+      name: jdk-updates
+      url: https://github.com/${{ github.repository }}/pull/${{ steps.pr.outputs.pull-request-number }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -29,7 +32,7 @@ jobs:
         run: |
           set -euo pipefail
           # Fetch the JDK 26 EA page and extract the latest build number
-          page=$(curl -fsSL "https://jdk.java.net/26/")
+          page=$(curl --max-time 30 -fsSL "https://jdk.java.net/26/")
 
           # Extract build number from the page
           build=$(echo "$page" | grep -oP 'Build \K\d+' | head -1)
@@ -82,7 +85,7 @@ jobs:
 
           for key in mac_arm mac_x64 linux_arm linux_x64; do
             url=${urls[$key]}
-            sha=$(curl -fsSL "${url}.sha256" | awk '{print $1}')
+            sha=$(curl --max-time 30 -fsSL "${url}.sha256" | awk '{print $1}')
             if [[ -z "$sha" || ! "$sha" =~ ^[0-9a-f]{64}$ ]]; then
               echo "Invalid checksum for ${key}: $sha"
               exit 1
@@ -95,7 +98,7 @@ jobs:
               actual=$(shasum -a 256 "$cache_file" | awk '{print $1}')
             else
               echo "Downloading ${key}..."
-              curl -fsSL "$url" -o "$cache_file"
+              curl --max-time 300 -fsSL "$url" -o "$cache_file"
               actual=$(shasum -a 256 "$cache_file" | awk '{print $1}')
             fi
 
@@ -171,6 +174,7 @@ jobs:
 
       - name: Create Pull Request
         if: steps.fetch_version.outputs.needs_update == 'true'
+        id: pr
         uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
