@@ -76,23 +76,17 @@ as regular human-authored commits without mentioning AI assistance.
 ### Cask Stanza Ordering
 ```ruby
 cask "jdk26ea" do
-  version "..."
+  arch arm: "aarch64", intel: "x64"
 
+  version "...,..."
+
+  sha256 arm:   "...",
+         intel: "..."
+
+  url "https://download.java.net/java/early_access/jdk26/#{version.csv.second}/GPL/openjdk-#{version.csv.first}_macos-#{arch}_bin.tar.gz"
   name "..."
   desc "..."
   homepage "..."
-
-  on_macos do
-    on_arm do
-      sha256 "..."  # SHA256 MUST come before URL
-      url "..."
-    end
-
-    on_intel do
-      sha256 "..."  # SHA256 MUST come before URL
-      url "..."
-    end
-  end
 
   postflight do
     # Installation logic
