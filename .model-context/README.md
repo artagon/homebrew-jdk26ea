@@ -54,8 +54,7 @@ The sync script compiles shared + agent-specific files into:
 - `.gemini/styleguide.md` ← shared/style-guide.md + security.md + agents/gemini.md
 - `.github/copilot-instructions.md` ← shared/*.md + agents/copilot.md
 - `.cursorrules` ← shared/*.md + agents/cursor.md
-- `.agents/instructions.md` ← shared/*.md + agents/openai.md
-- `.agents/context.md` ← shared/context.md
+- `AGENTS.md` ← shared/*.md + agents/openai.md
 
 ## Workflow
 
@@ -78,7 +77,7 @@ vim .model-context/shared/style-guide.md
 
 ```bash
 # Atomic commit of all changes
-git add .model-context/ .claude/ .gemini/ .github/ .cursorrules .agents/
+git add .model-context/ .claude/ .gemini/ .github/ .cursorrules AGENTS.md
 git commit -m "docs: update model context"
 ```
 
@@ -100,7 +99,7 @@ git commit -m "docs: update model context"
 | Gemini | `.gemini/instructions.md`<br>`.gemini/context.md`<br>`.gemini/styleguide.md` | `shared/*.md + agents/gemini.md` |
 | Copilot | `.github/copilot-instructions.md` | `shared/*.md + agents/copilot.md` |
 | Cursor | `.cursorrules` | `shared/*.md + agents/cursor.md` |
-| OpenAI Codex | `.agents/instructions.md`<br>`.agents/context.md` | `shared/*.md + agents/openai.md` |
+| OpenAI Codex | `AGENTS.md` | `shared/*.md + agents/openai.md` |
 
 ## Example: Adding Security Rule
 

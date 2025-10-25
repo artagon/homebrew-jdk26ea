@@ -62,8 +62,7 @@ check_file ".cursorrules" ".cursorrules"
 echo ""
 
 echo "Checking OpenAI Codex..."
-check_file ".agents/instructions.md" ".agents/instructions.md"
-check_file ".agents/context.md" ".agents/context.md"
+check_file "AGENTS.md" "AGENTS.md"
 echo ""
 
 if [ $EXIT_CODE -eq 0 ]; then
