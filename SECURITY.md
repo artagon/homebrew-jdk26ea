@@ -117,7 +117,7 @@ This project implements multiple security measures to ensure the integrity of JD
 
 - [ ] Implement GPG verification when available from OpenJDK
 - [ ] Add SBOM (Software Bill of Materials) generation for releases
-- [ ] Set up workflow run approval for first-time contributors
+- [x] Set up workflow run approval for first-time contributors
 - [ ] Document security policy for downstream consumers
 
 ### Long-term (Next 6-12 months)
