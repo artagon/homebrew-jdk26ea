@@ -82,7 +82,7 @@ jobs:
 
       - name: Test formula installation
         run: |
-          brew install jdk26ea
+          brew install artagon/jdk26ea/jdk26ea
 
       - name: Verify installation
         run: |
