@@ -136,3 +136,16 @@ jobs:
     steps:
       - name: Confirm completion
         run: echo "✅ All validation jobs completed successfully."
+
+      - name: Publish Validate status for branch protection
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          gh api \
+            --method POST \
+            "repos/${REPO}/statuses/${SHA}" \
+            -f state=success \
+            -f context=Validate \
+            -f description="All validation jobs completed successfully."
