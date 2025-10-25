@@ -1,16 +1,19 @@
 cask "jdk26ea" do
-  arch arm: "aarch64", intel: "x64"
-
   version "26-ea+20,20"
-  # Installs to: /Library/Java/JavaVirtualMachines/jdk-26-ea.jdk
-  # Supports: macOS ARM64 (Apple Silicon) and x64 (Intel)
-  sha256 arm:   "dc75cdb507e47a66b0edc73d1cfc4a1c011078d5d0785c7660320d2e9c3e04d4",
-         intel: "5da4095d77d50eb19d8df7f0d128c16a6ff933d6cadc5cbf6fff1bf0530b6474"
-
-  url "https://download.java.net/java/early_access/jdk26/#{version.csv.second}/GPL/openjdk-#{version.csv.first}_macos-#{arch}_bin.tar.gz"
   name "JDK 26 EA"
   desc "Early-Access JDK 26"
   homepage "https://jdk.java.net/26/"
+
+  on_macos do
+    arch arm: "aarch64", intel: "x64"
+
+    # Installs to: /Library/Java/JavaVirtualMachines/jdk-26-ea.jdk
+    # Supports: macOS ARM64 (Apple Silicon) and x64 (Intel)
+    sha256 arm:   "dc75cdb507e47a66b0edc73d1cfc4a1c011078d5d0785c7660320d2e9c3e04d4",
+           intel: "5da4095d77d50eb19d8df7f0d128c16a6ff933d6cadc5cbf6fff1bf0530b6474"
+
+    url "https://download.java.net/java/early_access/jdk26/#{version.csv.second}/GPL/openjdk-#{version.csv.first}_macos-#{arch}_bin.tar.gz"
+  end
 
   postflight do
     require "pathname"
