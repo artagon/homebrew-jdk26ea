@@ -1,6 +1,6 @@
 <!-- AUTO-GENERATED from .model-context/
      DO NOT EDIT DIRECTLY - Edit .model-context/shared/ instead
-     Last synced: 2025-10-25 10:21:04 UTC
+     Last synced: 2025-10-25 10:34:16 UTC
      Agent: Gemini Code Assist -->
 
 <!-- BEGIN: .model-context/shared/style-guide.md -->

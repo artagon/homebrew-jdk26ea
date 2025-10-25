@@ -1,9 +1,3 @@
-<!-- AUTO-GENERATED from .ai-context/
-     DO NOT EDIT DIRECTLY - Edit .ai-context/shared/ instead
-     Last synced: 2025-10-25 09:39:59 UTC
-     Agent: Claude Code -->
-
-<!-- BEGIN: .ai-context/shared/context.md -->
 # homebrew-jdk26ea - Repository Context
 
 ## Project Overview
@@ -382,6 +376,4 @@ This repository uses a dedicated SSH identity:
 - 31 commits total
 - Active maintenance and improvements ongoing
 
-
-<!-- END: .ai-context/shared/context.md -->
 
