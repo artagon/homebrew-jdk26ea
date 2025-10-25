@@ -100,13 +100,9 @@ jobs:
             fi
 
             if [[ "$actual" != "$sha" ]]; then
-              echo "Checksum mismatch for ${key}, re-downloading..."
-              curl -fsSL "$url" -o "$cache_file"
-              actual=$(shasum -a 256 "$cache_file" | awk '{print $1}')
-              if [[ "$actual" != "$sha" ]]; then
-                echo "Checksum mismatch for ${key} after re-download"
-                exit 1
-              fi
+              echo "Checksum mismatch for ${key}. Deleting cached file and failing."
+              rm -f "$cache_file"
+              exit 1
             fi
             printf 'sha_%s=%s\n' "$key" "$sha" >> "$GITHUB_OUTPUT"
           done
