@@ -40,13 +40,6 @@ check_file() {
 echo "Checking Claude Code..."
 check_file ".claude/instructions.md" ".claude/instructions.md"
 check_file ".claude/context.md" ".claude/context.md"
-
-if [ "$(cat .agents 2>/dev/null)" = ".claude" ]; then
-  echo "  ✓ .agents → .claude"
-else
-  echo "  ❌ .agents incorrect"
-  EXIT_CODE=1
-fi
 echo ""
 
 echo "Checking Gemini..."
@@ -69,7 +62,8 @@ check_file ".cursorrules" ".cursorrules"
 echo ""
 
 echo "Checking OpenAI Codex..."
-check_file "AGENTS.md" "AGENTS.md"
+check_file ".agents/instructions.md" ".agents/instructions.md"
+check_file ".agents/context.md" ".agents/context.md"
 echo ""
 
 if [ $EXIT_CODE -eq 0 ]; then

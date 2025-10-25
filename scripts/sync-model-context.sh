@@ -64,12 +64,8 @@ append_file "$AGENTS_DIR/claude.md" ".claude/instructions.md"
 add_header ".claude/context.md" "Claude Code"
 append_file "$SHARED_DIR/context.md" ".claude/context.md"
 
-# .agents pointer
-echo ".claude" > .agents
-
 echo "  ✓ .claude/instructions.md ($(wc -l < .claude/instructions.md) lines)"
 echo "  ✓ .claude/context.md ($(wc -l < .claude/context.md) lines)"
-echo "  ✓ .agents → .claude"
 echo ""
 
 # 2. GEMINI
@@ -148,25 +144,21 @@ echo ""
 
 # 5. OPENAI CODEX
 echo "🧠 OpenAI Codex..."
+mkdir -p .agents
 
-{
-  echo "# AUTO-GENERATED from .model-context/"
-  echo "# DO NOT EDIT DIRECTLY"
-  echo "# Last synced: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
-  echo ""
-  echo "# OpenAI Codex Agent Instructions"
-  echo "# https://github.com/openai/codex"
-  echo ""
+# OpenAI Codex instructions.md
+add_header ".agents/instructions.md" "OpenAI Codex"
+append_file "$SHARED_DIR/instructions.md" ".agents/instructions.md"
+append_file "$SHARED_DIR/security.md" ".agents/instructions.md"
+append_file "$SHARED_DIR/style-guide.md" ".agents/instructions.md"
+append_file "$AGENTS_DIR/openai.md" ".agents/instructions.md"
 
-  # Codex prefers markdown format
-  [ -f "$SHARED_DIR/context.md" ] && cat "$SHARED_DIR/context.md" && echo ""
-  [ -f "$SHARED_DIR/instructions.md" ] && cat "$SHARED_DIR/instructions.md" && echo ""
-  [ -f "$SHARED_DIR/security.md" ] && cat "$SHARED_DIR/security.md" && echo ""
-  [ -f "$SHARED_DIR/style-guide.md" ] && cat "$SHARED_DIR/style-guide.md" && echo ""
-  [ -f "$AGENTS_DIR/openai.md" ] && cat "$AGENTS_DIR/openai.md"
-} > AGENTS.md
+# OpenAI Codex context.md
+add_header ".agents/context.md" "OpenAI Codex"
+append_file "$SHARED_DIR/context.md" ".agents/context.md"
 
-echo "  ✓ AGENTS.md ($(wc -l < AGENTS.md) lines)"
+echo "  ✓ .agents/instructions.md ($(wc -l < .agents/instructions.md) lines)"
+echo "  ✓ .agents/context.md ($(wc -l < .agents/context.md) lines)"
 echo ""
 
 # Summary
@@ -179,6 +171,6 @@ echo "  • Claude Code   (.claude/)"
 echo "  • Gemini        (.gemini/)"
 echo "  • Copilot       (.github/)"
 echo "  • Cursor        (.cursorrules)"
-echo "  • OpenAI Codex  (AGENTS.md)"
+echo "  • OpenAI Codex  (.agents/)"
 echo ""
 echo "Verify: ./scripts/verify-model-context-sync.sh"
