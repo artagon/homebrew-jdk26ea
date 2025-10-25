@@ -136,17 +136,3 @@ jobs:
     steps:
       - name: Confirm completion
         run: echo "✅ All validation jobs completed successfully."
-
-      - name: Publish legacy commit status for backwards compatibility
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: |
-          # Publish legacy ValidateExpected status for external tools
-          gh api \
-            --method POST \
-            "repos/${REPO}/statuses/${SHA}" \
-            -f state=success \
-            -f context=ValidateExpected \
-            -f description="All validation jobs completed successfully."
