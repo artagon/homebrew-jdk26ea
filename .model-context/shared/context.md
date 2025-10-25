@@ -1,9 +1,3 @@
-<!-- AUTO-GENERATED from .model-context/
-     DO NOT EDIT DIRECTLY - Edit .model-context/shared/ instead
-     Last synced: 2025-10-25 09:51:14 UTC
-     Agent: Claude Code -->
-
-<!-- BEGIN: .model-context/shared/context.md -->
 <!-- AUTO-GENERATED from .ai-context/
      DO NOT EDIT DIRECTLY - Edit .ai-context/shared/ instead
      Last synced: 2025-10-25 09:39:59 UTC
@@ -390,7 +384,4 @@ This repository uses a dedicated SSH identity:
 
 
 <!-- END: .ai-context/shared/context.md -->
-
-
-<!-- END: .model-context/shared/context.md -->
 

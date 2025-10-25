@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@master
+        uses: Homebrew/actions/setup-homebrew@c39f0335940fb3214046dce5a5d2f94ed275ab4b
 
       - name: Validate cask syntax
         run: |
@@ -37,7 +37,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@master
+        uses: Homebrew/actions/setup-homebrew@c39f0335940fb3214046dce5a5d2f94ed275ab4b
 
       - name: Test cask installation
         run: |
@@ -72,7 +72,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@master
+        uses: Homebrew/actions/setup-homebrew@c39f0335940fb3214046dce5a5d2f94ed275ab4b
 
       - name: Display system info
         run: |
@@ -139,13 +139,13 @@ jobs:
 
       - name: Update legacy commit status
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          curl -sS \
-               -X POST \
-               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-               -H "Accept: application/vnd.github+json" \
-               "https://api.github.com/repos/${REPO}/statuses/${SHA}" \
-               -d '{"state":"success","context":"ValidateExpected","description":"All validation jobs completed successfully."}'
+          gh api \
+            --method POST \
+            "repos/${REPO}/statuses/${SHA}" \
+            -f state=success \
+            -f context=ValidateExpected \
+            -f description="All validation jobs completed successfully."

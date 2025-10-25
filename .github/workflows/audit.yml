@@ -13,7 +13,7 @@ jobs:
 
       - name: Set up Homebrew
         if: runner.os == 'Linux'
-        uses: Homebrew/actions/setup-homebrew@master
+        uses: Homebrew/actions/setup-homebrew@c39f0335940fb3214046dce5a5d2f94ed275ab4b
 
       - name: Audit cask
         run: |

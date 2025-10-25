@@ -1,7 +1,7 @@
 <!-- AUTO-GENERATED from .model-context/
      DO NOT EDIT DIRECTLY - Edit .model-context/shared/ instead
      Last synced: 2025-10-25 09:51:14 UTC
-     Agent: Claude Code -->
+     Agent: Gemini Code Assist -->
 
 <!-- BEGIN: .model-context/shared/instructions.md -->
 <!-- AUTO-GENERATED from .ai-context/
@@ -2286,54 +2286,32 @@ permissions:
 
 <!-- END: .model-context/shared/style-guide.md -->
 
-<!-- BEGIN: .model-context/agents/claude.md -->
-# Claude Code Specific Instructions
+<!-- BEGIN: .model-context/agents/gemini.md -->
+# Gemini Code Assist Specific Instructions
 
-## Shared Context
-Claude loads this file plus all files in `.model-context/shared/`:
-- instructions.md - Behavioral instructions
-- context.md - Repository context
-- security.md - Security guidelines
-- style-guide.md - Code style rules
+## Configuration
+Gemini loads from `.gemini/styleguide.md` (auto-generated from shared context)
 
-## Claude-Specific Tools and Practices
+## Gemini-Specific Features
+- Automated code reviews on PRs
+- Multi-file context awareness
+- Natural language code generation
+- Integrated with Google Cloud
 
-### Task Management
-- Use `TodoWrite` tool for multi-step tasks
-- Mark tasks `in_progress` before starting
-- Mark tasks `completed` immediately after finishing
-- Never batch completions
+## Code Review Focus
+When reviewing PRs, prioritize:
+1. Security vulnerabilities (path traversal, injection, token exposure)
+2. Missing SHA256 checksums
+3. Unpinned GitHub Actions
+4. Semantic commit message compliance
+5. RuboCop/style violations
+6. Test coverage
 
-### Code Operations
-- Prefer `Edit` tool over `Write` for existing files
-- Use `Read` before `Write` or `Edit`
-- Use `Grep` and `Glob` for searching (NOT bash grep/find)
-- Use `Bash` only for actual shell commands
+## Review Comments
+- Use severity levels: CRITICAL, HIGH, MEDIUM, LOW
+- Be specific about fixes required
+- Reference relevant documentation
+- Suggest concrete improvements
 
-### Agent Usage
-- Use `Task` tool with `subagent_type=Explore` for codebase exploration
-- Launch agents in parallel when possible (single message, multiple Task calls)
-- Never guess parameters - wait for actual values
-
-### Communication
-- Output text directly to user (not via echo/bash)
-- No emojis unless user explicitly requests
-- Be concise - user sees output in CLI
-- Use Github-flavored markdown
-
-## Repository Operations
-
-### Git Commits
-- Create commits only when explicitly requested
-- Use heredoc for commit messages to preserve formatting
-- Never use `--no-verify` to bypass hooks
-- Always validate commit message format before committing
-
-### Creating PRs
-- Always show full diff before creating PR
-- Generate comprehensive PR description
-- Include test plan
-- Return PR URL when done
-
-<!-- END: .model-context/agents/claude.md -->
+<!-- END: .model-context/agents/gemini.md -->
 

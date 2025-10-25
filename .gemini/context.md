@@ -1,7 +1,7 @@
 <!-- AUTO-GENERATED from .model-context/
      DO NOT EDIT DIRECTLY - Edit .model-context/shared/ instead
      Last synced: 2025-10-25 09:51:14 UTC
-     Agent: Claude Code -->
+     Agent: Gemini Code Assist -->
 
 <!-- BEGIN: .model-context/shared/context.md -->
 <!-- AUTO-GENERATED from .ai-context/
