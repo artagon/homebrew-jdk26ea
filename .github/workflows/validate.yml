@@ -15,6 +15,11 @@ jobs:
         if: runner.os == 'Linux'
         uses: Homebrew/actions/setup-homebrew@master
 
+      - name: Tap repository
+        run: |
+          brew untap artagon/jdk26ea || true
+          brew tap --custom-remote artagon/jdk26ea "$GITHUB_WORKSPACE"
+
       - name: Validate cask syntax
         run: |
           brew style Casks/jdk26ea.rb
@@ -22,7 +27,7 @@ jobs:
 
       - name: Audit cask
         run: |
-          brew audit --cask ./Casks/jdk26ea.rb
+          brew audit --cask artagon/jdk26ea/jdk26ea
 
       - name: Validate formula syntax
         run: |
@@ -132,4 +137,4 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          brew uninstall jdk26ea || true
+          brew uninstall --formula jdk26ea || true
