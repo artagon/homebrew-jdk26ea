@@ -15,7 +15,7 @@ We take security seriously. If you discover a security vulnerability, please rep
 
 ### Where to Report
 
-- **Email**: Open an issue at https://github.com/artagon/homebrew-jdk26ea/issues
+- **GitHub Issues**: Open an issue at https://github.com/artagon/homebrew-jdk26ea/issues
 - **For sensitive issues**: Please email the repository maintainer directly
 
 ### What to Include
