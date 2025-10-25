@@ -26,15 +26,17 @@ cask "jdk26ea" do
     jdk_target = Pathname("/Library/Java/JavaVirtualMachines/jdk-26-ea.jdk")
     if jdk_target.exist?
       ohai "Removing existing JDK at #{jdk_target}"
-      system_command! "/bin/rm",
-                      args: ["-rf", jdk_target.to_s],
-                      sudo: true
+      removal = system_command "/bin/rm",
+                               args: ["-rf", jdk_target.to_s],
+                               sudo: true
+      odie "Failed to remove existing JDK at #{jdk_target}" unless removal.success?
     end
 
     ohai "Installing JDK 26 EA to #{jdk_target}"
-    system_command! "/usr/bin/ditto",
-                    args: ["--noqtn", jdk_src.to_s, jdk_target.to_s],
-                    sudo: true
+    install = system_command "/usr/bin/ditto",
+                             args: ["--noqtn", jdk_src.to_s, jdk_target.to_s],
+                             sudo: true
+    odie "Failed to install JDK to #{jdk_target}" unless install.success?
   end
 
   uninstall delete: "/Library/Java/JavaVirtualMachines/jdk-26-ea.jdk"
