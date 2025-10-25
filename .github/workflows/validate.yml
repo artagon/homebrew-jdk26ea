@@ -41,7 +41,7 @@ jobs:
 
       - name: Test cask installation
         run: |
-          brew install --cask jdk26ea
+          brew install --cask artagon/jdk26ea/jdk26ea
 
       - name: Verify installation
         run: |
@@ -56,7 +56,7 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          brew uninstall --cask jdk26ea || true
+          brew uninstall --cask artagon/jdk26ea/jdk26ea || true
 
   test-install-linux:
     strategy:
