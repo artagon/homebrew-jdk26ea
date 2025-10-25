@@ -9,23 +9,43 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           fetch-depth: 0  # Fetch all history for changelog
+
+      - name: Set up Homebrew
+        if: runner.os == 'Linux'
+        uses: Homebrew/actions/setup-homebrew@c39f0335940fb3214046dce5a5d2f94ed275ab4b
+
+      - name: Audit cask
+        run: |
+          brew untap artagon/jdk26ea || true
+          brew tap --custom-remote artagon/jdk26ea "$GITHUB_WORKSPACE"
+          brew audit --cask artagon/jdk26ea/jdk26ea
 
       - name: Extract version from cask
         id: version
         run: |
+          set -euo pipefail
           VERSION=$(grep -oP 'version "\K[^"]+' Casks/jdk26ea.rb)
+          if [[ -z "$VERSION" ]]; then
+            echo "Failed to extract version from Casks/jdk26ea.rb"
+            exit 1
+          fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
           # Extract build number for changelog
           BUILD=$(echo "$VERSION" | grep -oP '\+\K\d+')
+          if [[ -z "$BUILD" || ! "$BUILD" =~ ^[0-9]+$ ]]; then
+            echo "Failed to extract build number from version $VERSION"
+            exit 1
+          fi
           echo "build=$BUILD" >> $GITHUB_OUTPUT
 
       - name: Check if tag exists
@@ -72,33 +92,64 @@ jobs:
 
       - name: Update README with current version
         if: steps.check_tag.outputs.exists == 'false'
+        id: update_readme
+        env:
+          BUILD: ${{ steps.version.outputs.build }}
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          BUILD="${{ steps.version.outputs.build }}"
+          set -euo pipefail
+          python3 <<'PY'
+          import datetime
+          import os
+          import pathlib
+          import re
+          import sys
+          import urllib.request
 
-          # Get release date from JDK page
-          RELEASE_DATE=$(curl -fsSL "https://jdk.java.net/26/" | grep -oP 'Build '"$BUILD"' \(\K[0-9]{4}/[0-9]{1,2}/[0-9]{1,2}' | head -1)
+          build = os.environ["BUILD"]
+          readme_path = pathlib.Path("README.md")
 
-          if [ -z "$RELEASE_DATE" ]; then
-            RELEASE_DATE=$(date +%Y-%m-%d)
-          else
-            # Convert YYYY/M/D to YYYY-MM-DD
-            RELEASE_DATE=$(echo "$RELEASE_DATE" | sed 's|/|-|g')
-          fi
+          try:
+              with urllib.request.urlopen("https://jdk.java.net/26/") as response:
+                  page = response.read().decode("utf-8", "replace")
+          except Exception as exc:
+              print(f"Failed to fetch release page: {exc}", file=sys.stderr)
+              sys.exit(1)
 
-          # Update README
-          sed -i "s/\*\*JDK 26 EA Build [0-9]*\*\* (Released: [0-9-]*)/\*\*JDK 26 EA Build $BUILD\*\* (Released: $RELEASE_DATE)/" README.md
+          match = re.search(rf"Build {re.escape(build)} \((\d{{4}}/\d{{1,2}}/\d{{1,2}})\)", page)
+          if match:
+              year, month, day = match.group(1).split("/")
+              release_date = f"{int(year):04d}-{int(month):02d}-{int(day):02d}"
+          else:
+              release_date = datetime.date.today().isoformat()
 
-          # Check if README was modified
-          if git diff --quiet README.md; then
-            echo "README not modified"
-          else
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add README.md
-            git commit -m "docs: update README to JDK 26 EA Build $BUILD"
-            git push
-          fi
+          text = readme_path.read_text()
+          pattern = r"\*\*JDK 26 EA Build \d+\*\* \(Released: [0-9-]*\)"
+          replacement = f"**JDK 26 EA Build {build}** (Released: {release_date})"
+          new_text, count = re.subn(pattern, replacement, text, count=1)
+          if count != 1:
+              print("Failed to update README version banner", file=sys.stderr)
+              sys.exit(1)
+
+          changed = new_text != text
+          if changed:
+              readme_path.write_text(new_text)
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+              fh.write(f"changed={'true' if changed else 'false'}\n")
+              fh.write(f"release_date={release_date}\n")
+          PY
+
+      - name: Create README update pull request
+        if: steps.check_tag.outputs.exists == 'false' && steps.update_readme.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "docs: update README to JDK 26 EA Build ${{ steps.version.outputs.build }}"
+          title: "docs: update README to JDK 26 EA Build ${{ steps.version.outputs.build }}"
+          body: |
+            This PR updates README.md to reflect JDK 26 EA Build ${{ steps.version.outputs.build }} (released ${{ steps.update_readme.outputs.release_date }}).
+          branch: release/readme-${{ steps.version.outputs.build }}
+          delete-branch: true
 
       - name: Fetch release notes from OpenJDK
         if: steps.check_tag.outputs.exists == 'false'
@@ -113,7 +164,7 @@ jobs:
 
       - name: Create Release
         if: steps.check_tag.outputs.exists == 'false'
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: JDK 26 EA Build ${{ steps.version.outputs.build }}
@@ -127,7 +178,7 @@ jobs:
             ### macOS & Linux
 
             ```bash
-            brew tap Artagon/jdk26
+            brew tap Artagon/jdk26ea
             brew install --cask jdk26ea  # macOS only
             # or
             brew install jdk26ea  # macOS & Linux

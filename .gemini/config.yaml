@@ -1,0 +1,12 @@
+# Gemini Code Assist Configuration
+# https://developers.google.com/gemini-code-assist/docs/customize-gemini-behavior-github
+
+auto_review: true
+review_summary: true
+comment_severity_threshold: MEDIUM
+max_review_comments: 50
+
+ignore:
+  - "*.bak"
+  - "*.tmp"
+  - ".git/**"

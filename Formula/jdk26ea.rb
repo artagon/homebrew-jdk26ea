@@ -25,8 +25,14 @@ class Jdk26ea < Formula
     bin.install_symlink Dir["#{libexec}/bin/*"]
   end
   test do
-    (testpath/"Hello.java").write "class Hello{public static void main(String[]a){System.out.println("hi");}}"
-    system "#{bin}/javac","--enable-preview","--release","26","Hello.java"
+    (testpath/"Hello.java").write <<~JAVA
+      class Hello {
+          public static void main(String[] args) {
+              System.out.println("hi");
+          }
+      }
+    JAVA
+    system "#{bin}/javac", "--enable-preview", "--release", "26", "Hello.java"
     assert_match(/26|26-ea/, shell_output("#{bin}/java --enable-preview Hello"))
   end
 end

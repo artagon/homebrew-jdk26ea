@@ -73,13 +73,6 @@ brew update
 brew upgrade jdk26ea  # or brew upgrade --cask jdk26ea
 ```
 
-## Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on:
-- How to report issues
-- How to submit pull requests
-- Guidelines for updating to new builds
-
 ## Issue Reporting
 
 Found a problem? [Open an issue](https://github.com/Artagon/homebrew-jdk26ea/issues/new/choose) using our issue templates.

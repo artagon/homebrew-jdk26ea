@@ -14,18 +14,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Fetch latest JDK 26 EA version
         id: fetch_version
         run: |
+          set -euo pipefail
           # Fetch the JDK 26 EA page and extract the latest build number
           page=$(curl -fsSL "https://jdk.java.net/26/")
 
           # Extract build number from the page
           build=$(echo "$page" | grep -oP 'Build \K\d+' | head -1)
 
-          if [ -z "$build" ]; then
+          if [[ -z "$build" || ! "$build" =~ ^[0-9]+$ ]]; then
             echo "Failed to fetch build number"
             exit 1
           fi
@@ -36,6 +37,11 @@ jobs:
           # Get current version from cask
           current_version=$(grep -oP 'version "\K[^"]+' Casks/jdk26ea.rb)
           current_build=$(echo "$current_version" | grep -oP '\+\K\d+')
+
+          if [[ -z "$current_build" || ! "$current_build" =~ ^[0-9]+$ ]]; then
+            echo "Failed to determine current build from Casks/jdk26ea.rb"
+            exit 1
+          fi
 
           echo "Current build: $current_build"
           echo "current_build=$current_build" >> $GITHUB_OUTPUT
@@ -52,26 +58,36 @@ jobs:
         if: steps.fetch_version.outputs.needs_update == 'true'
         id: checksums
         run: |
+          set -euo pipefail
           build=${{ steps.fetch_version.outputs.build }}
 
           # Download URLs
-          url_mac_arm="https://download.java.net/java/early_access/jdk26/${build}/GPL/openjdk-26-ea+${build}_macos-aarch64_bin.tar.gz"
-          url_mac_x64="https://download.java.net/java/early_access/jdk26/${build}/GPL/openjdk-26-ea+${build}_macos-x64_bin.tar.gz"
-          url_linux_arm="https://download.java.net/java/early_access/jdk26/${build}/GPL/openjdk-26-ea+${build}_linux-aarch64_bin.tar.gz"
-          url_linux_x64="https://download.java.net/java/early_access/jdk26/${build}/GPL/openjdk-26-ea+${build}_linux-x64_bin.tar.gz"
+          declare -A urls=(
+            [mac_arm]="https://download.java.net/java/early_access/jdk26/${build}/GPL/openjdk-26-ea+${build}_macos-aarch64_bin.tar.gz"
+            [mac_x64]="https://download.java.net/java/early_access/jdk26/${build}/GPL/openjdk-26-ea+${build}_macos-x64_bin.tar.gz"
+            [linux_arm]="https://download.java.net/java/early_access/jdk26/${build}/GPL/openjdk-26-ea+${build}_linux-aarch64_bin.tar.gz"
+            [linux_x64]="https://download.java.net/java/early_access/jdk26/${build}/GPL/openjdk-26-ea+${build}_linux-x64_bin.tar.gz"
+          )
 
-          # Fetch checksums
-          sha_mac_arm=$(curl -fsSL "${url_mac_arm}.sha256" | awk '{print $1}')
-          sha_mac_x64=$(curl -fsSL "${url_mac_x64}.sha256" | awk '{print $1}')
-          sha_linux_arm=$(curl -fsSL "${url_linux_arm}.sha256" | awk '{print $1}')
-          sha_linux_x64=$(curl -fsSL "${url_linux_x64}.sha256" | awk '{print $1}')
+          for key in mac_arm mac_x64 linux_arm linux_x64; do
+            url=${urls[$key]}
+            sha=$(curl -fsSL "${url}.sha256" | awk '{print $1}')
+            if [[ -z "$sha" || ! "$sha" =~ ^[0-9a-f]{64}$ ]]; then
+              echo "Invalid checksum for ${key}: $sha"
+              exit 1
+            fi
+            tmp=$(mktemp)
+            curl -fsSL "$url" -o "$tmp"
+            actual=$(shasum -a 256 "$tmp" | awk '{print $1}')
+            rm -f "$tmp"
+            if [[ "$actual" != "$sha" ]]; then
+              echo "Checksum mismatch for ${key}"
+              exit 1
+            fi
+            printf 'sha_%s=%s\n' "$key" "$sha" >> "$GITHUB_OUTPUT"
+          done
 
-          echo "sha_mac_arm=$sha_mac_arm" >> $GITHUB_OUTPUT
-          echo "sha_mac_x64=$sha_mac_x64" >> $GITHUB_OUTPUT
-          echo "sha_linux_arm=$sha_linux_arm" >> $GITHUB_OUTPUT
-          echo "sha_linux_x64=$sha_linux_x64" >> $GITHUB_OUTPUT
-
-          echo "Checksums computed successfully"
+          echo "Checksums validated successfully"
 
       - name: Update cask
         if: steps.fetch_version.outputs.needs_update == 'true'
@@ -80,14 +96,17 @@ jobs:
           current_build=${{ steps.fetch_version.outputs.current_build }}
 
           # Update Cask
-          sed -i "s/26-ea+${current_build}/26-ea+${build}/g" Casks/jdk26ea.rb
-          sed -i "s|jdk26/${current_build}/GPL|jdk26/${build}/GPL|g" Casks/jdk26ea.rb
+          new_cask_version="26-ea+${build},${build}"
+          sed -i "s|version \".*\"|version \"${new_cask_version}\"|g" Casks/jdk26ea.rb
 
           # Update checksums in Cask
           awk -v arm="${{ steps.checksums.outputs.sha_mac_arm }}" \
-              -v x64="${{ steps.checksums.outputs.sha_mac_x64 }}" \
-              '/on_arm/,/sha256/ { if (/sha256/) { sub(/sha256 ".*"/, "sha256 \"" arm "\"") } }
-               /on_intel/,/sha256/ { if (/sha256/) { sub(/sha256 ".*"/, "sha256 \"" x64 "\"") } }
+              -v intel="${{ steps.checksums.outputs.sha_mac_x64 }}" \
+              '/sha256 arm:/ {
+                 print "  sha256 arm:   \"" arm "\","
+                 print "         intel: \"" intel "\""
+                 next
+               }
                {print}' Casks/jdk26ea.rb > Casks/jdk26ea.rb.tmp && mv Casks/jdk26ea.rb.tmp Casks/jdk26ea.rb
 
       - name: Update formula
@@ -132,7 +151,7 @@ jobs:
 
       - name: Create Pull Request
         if: steps.fetch_version.outputs.needs_update == 'true'
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "chore: update to JDK 26 EA Build ${{ steps.fetch_version.outputs.build }}"
