@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Cache JDK downloads
-        uses: actions/cache@v4
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
         with:
           path: /tmp/jdk-downloads
           key: ${{ runner.os }}-jdk26ea-downloads-${{ github.run_id }}
