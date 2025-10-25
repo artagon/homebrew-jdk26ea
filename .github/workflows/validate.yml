@@ -39,6 +39,14 @@ jobs:
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@c39f0335940fb3214046dce5a5d2f94ed275ab4b
 
+      - name: Cache Homebrew downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/Homebrew/downloads
+          key: ${{ runner.os }}-${{ runner.arch }}-homebrew-jdk26ea-${{ hashFiles('Casks/jdk26ea.rb') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-homebrew-jdk26ea-
+
       - name: Test cask installation
         run: |
           brew install --cask artagon/jdk26ea/jdk26ea
@@ -73,6 +81,14 @@ jobs:
 
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@c39f0335940fb3214046dce5a5d2f94ed275ab4b
+
+      - name: Cache Homebrew downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/Homebrew/downloads
+          key: ${{ runner.os }}-${{ matrix.arch }}-homebrew-jdk26ea-${{ hashFiles('Formula/jdk26ea.rb') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.arch }}-homebrew-jdk26ea-
 
       - name: Display system info
         run: |

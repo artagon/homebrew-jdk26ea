@@ -16,6 +16,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
+      - name: Cache JDK downloads
+        uses: actions/cache@v4
+        with:
+          path: /tmp/jdk-downloads
+          key: ${{ runner.os }}-jdk26ea-downloads-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-jdk26ea-downloads-
+
       - name: Fetch latest JDK 26 EA version
         id: fetch_version
         run: |
@@ -61,6 +69,9 @@ jobs:
           set -euo pipefail
           build=${{ steps.fetch_version.outputs.build }}
 
+          # Create cache directory
+          mkdir -p /tmp/jdk-downloads
+
           # Download URLs
           declare -A urls=(
             [mac_arm]="https://download.java.net/java/early_access/jdk26/${build}/GPL/openjdk-26-ea+${build}_macos-aarch64_bin.tar.gz"
@@ -76,13 +87,26 @@ jobs:
               echo "Invalid checksum for ${key}: $sha"
               exit 1
             fi
-            tmp=$(mktemp)
-            curl -fsSL "$url" -o "$tmp"
-            actual=$(shasum -a 256 "$tmp" | awk '{print $1}')
-            rm -f "$tmp"
+
+            # Use cached download if available
+            cache_file="/tmp/jdk-downloads/$(basename "$url")"
+            if [[ -f "$cache_file" ]]; then
+              echo "Using cached file for ${key}"
+              actual=$(shasum -a 256 "$cache_file" | awk '{print $1}')
+            else
+              echo "Downloading ${key}..."
+              curl -fsSL "$url" -o "$cache_file"
+              actual=$(shasum -a 256 "$cache_file" | awk '{print $1}')
+            fi
+
             if [[ "$actual" != "$sha" ]]; then
-              echo "Checksum mismatch for ${key}"
-              exit 1
+              echo "Checksum mismatch for ${key}, re-downloading..."
+              curl -fsSL "$url" -o "$cache_file"
+              actual=$(shasum -a 256 "$cache_file" | awk '{print $1}')
+              if [[ "$actual" != "$sha" ]]; then
+                echo "Checksum mismatch for ${key} after re-download"
+                exit 1
+              fi
             fi
             printf 'sha_%s=%s\n' "$key" "$sha" >> "$GITHUB_OUTPUT"
           done
