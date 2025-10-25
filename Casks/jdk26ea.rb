@@ -1,5 +1,6 @@
 cask "jdk26ea" do
   version "26-ea+20,20"
+
   name "JDK 26 EA"
   desc "Early-Access JDK 26"
   homepage "https://jdk.java.net/26/"
