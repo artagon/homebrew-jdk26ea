@@ -37,6 +37,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
       - name: Test cask installation
         run: |
           brew install --cask jdk26ea
