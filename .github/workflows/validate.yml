@@ -134,4 +134,18 @@ jobs:
       - test-install-macos
       - test-install-linux
     steps:
-      - run: echo "All validation jobs completed successfully."
+      - name: Confirm completion
+        run: echo "All validation jobs completed successfully."
+
+      - name: Update legacy commit status
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          curl -sS \
+               -X POST \
+               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+               -H "Accept: application/vnd.github+json" \
+               "https://api.github.com/repos/${REPO}/statuses/${SHA}" \
+               -d '{"state":"success","context":"ValidateExpected","description":"All validation jobs completed successfully."}'
